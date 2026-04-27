@@ -60,7 +60,7 @@ const server = http.createServer((req, res) => {
         });
 
         anthropicReq.write(JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: 1000,
           system: payload.system,
           tools: [{ type: 'web_search_20250305', name: 'web_search' }],
