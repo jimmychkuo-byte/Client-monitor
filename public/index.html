@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Category Monitor — WPP Media Taiwan</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.2);
+    --text: #1a1a18;
+    --text-muted: #6b6b67;
+    --text-faint: #a0a09a;
+    --accent: #1a1a18;
+    --green-bg: #eaf3de; --green-text: #27500a; --green-border: rgba(99,153,34,0.3);
+    --yellow-bg: #faeeda; --yellow-text: #633806; --yellow-border: rgba(186,117,23,0.3);
+    --red-bg: #fcebeb; --red-text: #791f1f; --red-border: rgba(226,75,74,0.3);
+    --info-bg: #e6f1fb; --info-text: #0c447c; --info-border: rgba(55,138,221,0.3);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --surface: #232321;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.2);
+      --text: #f0f0ec;
+      --text-muted: #a0a09a;
+      --text-faint: #6b6b67;
+      --green-bg: #173404; --green-text: #c0dd97; --green-border: rgba(99,153,34,0.3);
+      --yellow-bg: #412402; --yellow-text: #fac775; --yellow-border: rgba(186,117,23,0.3);
+      --red-bg: #501313; --red-text: #f7c1c1; --red-border: rgba(226,75,74,0.3);
+      --info-bg: #042c53; --info-text: #b5d4f4; --info-border: rgba(55,138,221,0.3);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .wordmark { font-size: 13px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
+  h1 { font-size: 22px; font-weight: 500; color: var(--text); }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+  .run-btn {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 22px;
+    border-radius: 8px;
+    border: 0.5px solid var(--border-strong);
+    background: var(--text);
+    color: var(--bg);
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .run-btn:hover { opacity: 0.85; }
+  .run-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 10px;
+  }
+
+  .client-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .client-card {
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 0.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .client-card:hover { border-color: var(--border-strong); }
+  .client-card.active {
+    border: 1.5px solid var(--info-border);
+    background: var(--info-bg);
+  }
+  .client-card .cname {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .client-card.active .cname { color: var(--info-text); }
+  .client-card .ccat {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .client-card.active .ccat { color: var(--info-text); opacity: 0.8; }
+
+  .signal-strip {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .sig-btn {
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .sig-btn:hover { border-color: var(--border-strong); color: var(--text); }
+  .sig-btn.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+    font-weight: 500;
+  }
+
+  .brief-panel {
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .brief-inner { padding: 1.5rem; }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    gap: 8px;
+  }
+  .empty-state p { font-size: 13px; color: var(--text-faint); }
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    gap: 14px;
+  }
+  .dots { display: flex; gap: 5px; }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+  @keyframes pulse{0%,80%,100%{opacity:.25}40%{opacity:1}}
+  .loading-state p { font-size: 13px; color: var(--text-muted); }
+
+  .brief-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 0.5px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 11px;
+    border-radius: 20px;
+  }
+  .pill-green { background: var(--green-bg); color: var(--green-text); }
+  .pill-yellow { background: var(--yellow-bg); color: var(--yellow-text); }
+  .pill-red { background: var(--red-bg); color: var(--red-text); }
+
+  .brief-meta { font-size: 13px; color: var(--text-muted); }
+  .brief-ts { font-size: 12px; color: var(--text-faint); margin-left: auto; }
+
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .chip {
+    font-size: 12px;
+    padding: 3px 11px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text-muted);
+  }
+  .chip.up { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
+  .chip.dn { background: var(--red-bg); color: var(--red-text); border-color: var(--red-border); }
+  .chip.fl { background: var(--yellow-bg); color: var(--yellow-text); border-color: var(--yellow-border); }
+
+  .brief-section { margin-bottom: 1.25rem; }
+  .brief-section:last-of-type { margin-bottom: 0; }
+  .sec-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 6px;
+  }
+  .sec-body {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.75;
+  }
+
+  .brief-actions {
+    display: flex;
+    gap: 8px;
+    padding: 1rem 1.5rem;
+    border-top: 0.5px solid var(--border);
+    flex-wrap: wrap;
+    background: var(--bg);
+  }
+
+  .act-btn {
+    font-size: 13px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 0.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .act-btn:hover { background: var(--border); }
+
+  .error-state {
+    padding: 2rem;
+    text-align: center;
+    font-size: 13px;
+    color: var(--red-text);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 600px) {
+    .page { padding: 1.25rem 1rem; }
+    .client-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <div class="wordmark">WPP Media Taiwan</div>
+      <h1>Client category monitor</h1>
+      <p class="subtitle">Weekly intelligence · competitor moves · category trends · brand sentiment</p>
+    </div>
+    <button class="run-btn" id="runBtn" onclick="runBrief()">Run brief</button>
+  </header>
+
+  <div class="section-label">Select client</div>
+  <div class="client-grid" id="clientGrid">
+    <div class="client-card active" data-client="LVMH" data-cat="Luxury goods · fashion · spirits" onclick="selectClient(this)">
+      <div class="cname">LVMH</div>
+      <div class="ccat">Luxury · fashion · spirits</div>
+    </div>
+    <div class="client-card" data-client="Google" data-cat="Consumer tech · Pixel · Play Store" onclick="selectClient(this)">
+      <div class="cname">Google</div>
+      <div class="ccat">Pixel · Play · consumer tech</div>
+    </div>
+    <div class="client-card" data-client="Richemont" data-cat="Luxury watches · jewellery · Cartier" onclick="selectClient(this)">
+      <div class="cname">Richemont</div>
+      <div class="ccat">Watches · jewellery · Cartier</div>
+    </div>
+    <div class="client-card" data-client="Mazda" data-cat="Automotive · mid-market · ICE/hybrid" onclick="selectClient(this)">
+      <div class="cname">Mazda</div>
+      <div class="ccat">Automotive · mid-market</div>
+    </div>
+    <div class="client-card" data-client="Estee Lauder" data-cat="Prestige beauty · skincare · fragrance" onclick="selectClient(this)">
+      <div class="cname">Estee Lauder</div>
+      <div class="ccat">Prestige beauty · skincare</div>
+    </div>
+    <div class="client-card" data-client="Jaguar Land Rover" data-cat="Premium automotive · EV transition · SUV" onclick="selectClient(this)">
+      <div class="cname">Jaguar Land Rover</div>
+      <div class="ccat">Premium auto · EV transition</div>
+    </div>
+  </div>
+
+  <div class="section-label">Signal focus</div>
+  <div class="signal-strip">
+    <button class="sig-btn active" data-sig="all" onclick="selectSig(this)">All signals</button>
+    <button class="sig-btn" data-sig="competitor" onclick="selectSig(this)">Competitor moves</button>
+    <button class="sig-btn" data-sig="category" onclick="selectSig(this)">Category trends</button>
+    <button class="sig-btn" data-sig="sentiment" onclick="selectSig(this)">Brand sentiment</button>
+  </div>
+
+  <div class="brief-panel" id="briefPanel">
+    <div class="brief-inner">
+      <div class="empty-state">
+        <p>Select a client and run your brief</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let activeClient = 'LVMH';
+let activeClientCat = 'Luxury goods · fashion · spirits';
+let activeSig = 'all';
+
+function selectClient(el) {
+  document.querySelectorAll('.client-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  activeClient = el.dataset.client;
+  activeClientCat = el.dataset.cat;
+}
+
+function selectSig(el) {
+  document.querySelectorAll('.sig-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  activeSig = el.dataset.sig;
+}
+
+function chipClass(s) {
+  const l = s.toLowerCase();
+  if (s.startsWith('+') || l.includes('ris') || l.includes('grow') || l.includes('gain') || l.includes(' up')) return 'up';
+  if (s.startsWith('-') || l.includes('fall') || l.includes('drop') || l.includes('declin') || l.includes(' down') || l.includes('weak') || l.includes('cut')) return 'dn';
+  return 'fl';
+}
+
+function showLoading() {
+  document.getElementById('briefPanel').innerHTML = `
+    <div class="brief-inner">
+      <div class="loading-state">
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <p>Researching ${activeClient} — searching live news and data...</p>
+      </div>
+    </div>`;
+}
+
+function renderBrief(text) {
+  const statusMatch = text.match(/STATUS:\s*(GREEN|YELLOW|RED)/i);
+  const status = statusMatch ? statusMatch[1].toUpperCase() : 'YELLOW';
+  const pillClass = status === 'GREEN' ? 'pill-green' : status === 'RED' ? 'pill-red' : 'pill-yellow';
+  const pillLabel = status === 'GREEN' ? 'Category healthy' : status === 'RED' ? 'Watch closely' : 'Mixed signals';
+
+  const signalMatch = text.match(/SIGNALS:\s*([^\n]+)/i);
+  const signals = signalMatch ? signalMatch[1].split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  const compMatch = text.match(/COMPETITOR[^:\n]*:\s*([\s\S]*?)(?=\nCATEGORY|\nBRAND|\nSO WHAT|$)/i);
+  const catMatch = text.match(/CATEGORY[^:\n]*:\s*([\s\S]*?)(?=\nCOMPETITOR|\nBRAND|\nSO WHAT|$)/i);
+  const sentMatch = text.match(/BRAND[^:\n]*:\s*([\s\S]*?)(?=\nCOMPETITOR|\nCATEGORY|\nSO WHAT|$)/i);
+  const sowhatMatch = text.match(/SO WHAT[^:\n]*:\s*([\s\S]*?)(?=\nSTATUS|\nSIGNALS|$)/i);
+
+  const comp = compMatch ? compMatch[1].trim() : '';
+  const cat = catMatch ? catMatch[1].trim() : '';
+  const sent = sentMatch ? sentMatch[1].trim() : '';
+  const sowhat = sowhatMatch ? sowhatMatch[1].trim() : '';
+
+  const now = new Date();
+  const ts = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  const chipsHTML = signals.length
+    ? `<div class="chip-row">${signals.map(s => `<span class="chip ${chipClass(s)}">${s}</span>`).join('')}</div>`
+    : '';
+
+  const section = (title, body) => body
+    ? `<div class="brief-section"><div class="sec-title">${title}</div><div class="sec-body">${body}</div></div>`
+    : '';
+
+  document.getElementById('briefPanel').innerHTML = `
+    <div class="brief-inner">
+      <div class="brief-header">
+        <span class="pill ${pillClass}">${pillLabel}</span>
+        <span class="brief-meta">${activeClient}</span>
+        <span class="brief-ts">${ts}</span>
+      </div>
+      ${chipsHTML}
+      ${section('Competitor moves', comp)}
+      ${section('Category trends', cat)}
+      ${section('Brand sentiment', sent)}
+      ${section('So what for your next client conversation', sowhat)}
+    </div>
+    <div class="brief-actions">
+      <button class="act-btn" onclick="askFollowup('Give me three sharp questions I should ask ${activeClient} in our next meeting based on what you just found about them')">Smart meeting questions</button>
+      <button class="act-btn" onclick="askFollowup('What should ${activeClient}\\'s media strategy be in Taiwan given these category trends?')">Taiwan media angle</button>
+      <button class="act-btn" onclick="runBrief()">Refresh</button>
+    </div>`;
+}
+
+function askFollowup(question) {
+  alert('Copy this into Claude chat:\\n\\n' + question);
+}
+
+const sigLabels = {
+  all: 'competitor moves, category trends, and brand sentiment',
+  competitor: 'competitor moves and campaign launches',
+  category: 'category and industry trends',
+  sentiment: 'brand sentiment and PR'
+};
+
+const SYSTEM = `You are a senior media and marketing intelligence analyst. The user is the CEO of WPP Media Taiwan (GroupM). He needs sharp, specific intelligence on his clients so he can walk into meetings knowing more than his clients expect. Be direct, specific, and analyst-toned. Focus on Taiwan and Asia-Pacific where relevant, but include global signals that would affect Taiwan strategy. No fluff, no generic observations.
+
+Format your response EXACTLY like this (each section 2-4 sentences with specific details):
+
+STATUS: [GREEN / YELLOW / RED — reflects category health and opportunity for media investment]
+
+SIGNALS: [comma-separated 5-7 specific signals with direction prefix, e.g.: +Luxury travel spending up 12% APAC, -China tourist spend down in Taiwan, flat competitor ad spend]
+
+COMPETITOR MOVES:
+[Specific recent moves by direct competitors — campaigns launched, agencies changed, budget signals, product launches attacking the same space.]
+
+CATEGORY TRENDS:
+[What is happening in this product category right now — consumer behavior shifts, macro trends affecting the category, Taiwan/APAC specific dynamics.]
+
+BRAND SENTIMENT:
+[Recent PR, earned media, controversies, or sentiment shifts. Any news that affects how consumers perceive this brand right now.]
+
+SO WHAT FOR YOUR NEXT CLIENT CONVERSATION:
+[One sharp paragraph: the one insight or question this CEO should bring into the next client meeting that will make them look smarter than the client expected. Make it specific and provocative.]`;
+
+async function runBrief() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  showLoading();
+
+  const userMsg = `Give me a current intelligence brief on ${activeClient} (${activeClientCat}). Focus on ${sigLabels[activeSig]}. Search for the most recent news and data — last 4 weeks if possible. I'm the CEO of WPP Media Taiwan and I need to walk into my next ${activeClient} meeting knowing something they don't. Today is ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`;
+
+  try {
+    const res = await fetch('/api/brief', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: SYSTEM,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById('briefPanel').innerHTML = `<div class="brief-inner"><div class="error-state">API error: ${data.error.message}</div></div>`;
+      btn.disabled = false;
+      return;
+    }
+
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    if (!text.trim()) {
+      document.getElementById('briefPanel').innerHTML = `<div class="brief-inner"><div class="error-state">No response returned. Try refreshing.</div></div>`;
+    } else {
+      renderBrief(text);
+    }
+  } catch (e) {
+    document.getElementById('briefPanel').innerHTML = `<div class="brief-inner"><div class="error-state">Error: ${e.message}</div></div>`;
+  }
+
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
